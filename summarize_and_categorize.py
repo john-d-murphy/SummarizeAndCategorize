@@ -26,24 +26,8 @@ def main():
     ### Get Webpage Text
     text = read_url(arguments.url)
 
-    get_open_ai_summary(text, arguments.key)
-
-    # ### Get Response
-    # title, summary, keywords, categories = get_open_ai_summary(text, arguments.key)
-
-    # ### Output Response
-    # print(title)
-    # print("----------------------------------")
-    # print("Summary:")
-    # print(summary)
-    # print("\n")
-    # print("Keywords")
-    # print("----------")
-    # print(keywords)
-    # print("\n")
-    # print("Categories")
-    # print("-------------")
-    # print(categories)
+    ### Print Open AI Summary
+    get_open_ai_summary(arguments.url, text, arguments.key)
 
 
 def parse_arguments():
@@ -92,21 +76,27 @@ def text_from_html(body):
     return " ".join(t.strip() for t in visible_texts)
 
 
-def get_open_ai_summary(html, api_key):
+def get_open_ai_summary(url, html, api_key):
+    print("URL: " + url + "\n")
     openai.api_key = api_key
 
     instructions = """You will recieve the content of a webpage, with this content, do the following.
-    1) Provide the Title For the Content Received.
+    1) Provide a Title For the Content Received, based on the content of the webpage
     2) Succinctly summarize content received as an abstract.
     3) Extract a list of the top 5 keywords from abstract. Make this a comma separated list.
     4) List 3 Melvil Decimal System ids to tag content received with. Just list the ID and Topic. Make this a comma separated list.
 
     Example Output would look like this:
 
-    Title from 1)
-    Abstract: From 2)
-    Keywords: From 3)
-    Categories: From 4)
+
+Title: The Demon Core and the Strange Death of Louis Slotin
+
+Abstract: This article recounts the story of Louis Slotin, a physicist working on the Manhattan Project, who died as a result of a criticality accident involving a plutonium core. The article explores the details of the accident, the impact of radiation exposure on Slotin's health, and the safety measures implemented afterward.
+
+Keywords: Demon Core, Louis Slotin, criticality accident, plutonium core, radiation exposure
+
+Categories: 539.7 - Atomic and Nuclear Physics, 621.48 - Nuclear Engineering, 940.54 - Military History of World War II
+
     """
 
     response = openai.ChatCompletion.create(
