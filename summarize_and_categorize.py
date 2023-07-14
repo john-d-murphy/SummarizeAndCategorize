@@ -26,22 +26,24 @@ def main():
     ### Get Webpage Text
     text = read_url(arguments.url)
 
-    ### Get Response
-    title, summary, keywords, categories = get_open_ai_summary(text, arguments.key)
+    get_open_ai_summary(text, arguments.key)
 
-    ### Output Response
-    print(title)
-    print("----------------------------------")
-    print("Summary:")
-    print(summary)
-    print("\n")
-    print("Keywords")
-    print("----------")
-    print(keywords)
-    print("\n")
-    print("Categories")
-    print("-------------")
-    print(categories)
+    # ### Get Response
+    # title, summary, keywords, categories = get_open_ai_summary(text, arguments.key)
+
+    # ### Output Response
+    # print(title)
+    # print("----------------------------------")
+    # print("Summary:")
+    # print(summary)
+    # print("\n")
+    # print("Keywords")
+    # print("----------")
+    # print(keywords)
+    # print("\n")
+    # print("Categories")
+    # print("-------------")
+    # print(categories)
 
 
 def parse_arguments():
@@ -85,7 +87,7 @@ def tag_visible(element):
 # From: https://stackoverflow.com/questions/1936466/how-to-scrape-only-visible-webpage-text-with-beautifulsoup
 def text_from_html(body):
     soup = BeautifulSoup(body, "html.parser")
-    texts = soup.findAll(text=True)
+    texts = soup.findAll(string=True)
     visible_texts = filter(tag_visible, texts)
     return " ".join(t.strip() for t in visible_texts)
 
@@ -93,12 +95,26 @@ def text_from_html(body):
 def get_open_ai_summary(html, api_key):
     openai.api_key = api_key
 
-    title_response = openai.ChatCompletion.create(
+    instructions = """You will recieve the content of a webpage, with this content, do the following.
+    1) Provide the Title For the Content Received.
+    2) Succinctly summarize content received as an abstract.
+    3) Extract a list of the top 5 keywords from abstract. Make this a comma separated list.
+    4) List 3 Melvil Decimal System ids to tag content received with. Just list the ID and Topic. Make this a comma separated list.
+
+    Example Output would look like this:
+
+    Title from 1)
+    Abstract: From 2)
+    Keywords: From 3)
+    Categories: From 4)
+    """
+
+    response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-16k",
         messages=[
             {
                 "role": "system",
-                "content": "Provide the Title for the content received.",
+                "content": instructions,
             },
             {
                 "role": "user",
@@ -107,62 +123,9 @@ def get_open_ai_summary(html, api_key):
         ],
     )
 
-    title_response = parse_response(title_response)
+    response = parse_response(response)
 
-    time.sleep(20)
-
-    summary_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k",
-        messages=[
-            {
-                "role": "system",
-                "content": "Succinctly summarize content received as an abstract.",
-            },
-            {
-                "role": "user",
-                "content": html,
-            },
-        ],
-    )
-
-    summary_response = parse_response(summary_response)
-
-    time.sleep(20)
-
-    keyword_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k",
-        messages=[
-            {
-                "role": "system",
-                "content": "You will be provided with a block of text, and your task is to extract a list of the top 5 keywords from it.",
-            },
-            {
-                "role": "user",
-                "content": html,
-            },
-        ],
-    )
-    keyword_response = parse_response(keyword_response)
-
-    time.sleep(20)
-
-    category_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k",
-        messages=[
-            {
-                "role": "system",
-                "content": "List 3 Melvil Decimal System ids to tag content received with. Just list the ID and Topic.",
-            },
-            {
-                "role": "user",
-                "content": html,
-            },
-        ],
-    )
-
-    category_response = parse_response(category_response)
-
-    return (title_response, summary_response, keyword_response, category_response)
+    print(response)
 
 
 def parse_response(open_ai_response):
